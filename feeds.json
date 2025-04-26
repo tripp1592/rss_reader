@@ -1,0 +1,6 @@
+{
+    "feeds": [
+        "https://xkcd.com/rss.xml",
+        "https://hnrss.org/frontpage"
+    ]
+}
