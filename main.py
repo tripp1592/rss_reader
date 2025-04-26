@@ -4,6 +4,7 @@
 import sys
 import webbrowser
 import feedparser
+from email.utils import parsedate_to_datetime
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -32,23 +33,11 @@ from db import (
     mark_entry_read,
 )
 
-# ----------------------------------------
-# Seed feed URLs for first run
-DEFAULT_FEEDS = [
-    "https://xkcd.com/rss.xml",
-    "https://hnrss.org/frontpage",
-    "https://www.govinfo.gov/rss/fr.xml",
-]
-# ----------------------------------------
-
 
 class RSSReaderGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         init_db()
-        for url in DEFAULT_FEEDS:
-            add_feed(url)
-
         self.init_ui()
         self.fetch_and_show()
 
@@ -60,39 +49,32 @@ class RSSReaderGUI(QMainWindow):
         self.setCentralWidget(container)
         layout = QVBoxLayout(container)
 
-        # Manage Feeds button
         btn_manage = QPushButton("Manage Feeds")
         btn_manage.clicked.connect(self.manage_feeds_dialog)
         layout.addWidget(btn_manage)
 
-        # Add Feed button
         btn_add = QPushButton("Add Feed")
         btn_add.clicked.connect(self.add_feed_dialog)
         layout.addWidget(btn_add)
 
-        # Refresh button
         btn_refresh = QPushButton("Refresh")
         btn_refresh.clicked.connect(self.fetch_and_show)
         layout.addWidget(btn_refresh)
 
-        # Splitter between list and detail
         splitter = QSplitter(Qt.Orientation.Horizontal)
         layout.addWidget(splitter)
 
-        # Left: list of unread titles
         self.list_widget = QListWidget()
         self.list_widget.setWordWrap(True)
         self.list_widget.itemClicked.connect(self.display_entry)
         splitter.addWidget(self.list_widget)
 
-        # Right: detail pane
         self.text_browser = QTextBrowser()
         self.text_browser.anchorClicked.connect(
             lambda url: webbrowser.open(url.toString())
         )
         splitter.addWidget(self.text_browser)
 
-        # Make left pane twice as wide as right by default
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 1)
 
@@ -102,21 +84,18 @@ class RSSReaderGUI(QMainWindow):
         dlg_layout = QVBoxLayout(dialog)
 
         feed_list = QListWidget()
-        for f in get_feeds():
+        for f in sorted(get_feeds(), key=lambda x: x["id"], reverse=True):
             feed_list.addItem(f["url"])
 
-        # Enable right-click context menu
         feed_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         feed_list.customContextMenuRequested.connect(
             lambda pos: self._show_feed_context_menu(feed_list, pos)
         )
 
         dlg_layout.addWidget(feed_list)
-
         btn_close = QPushButton("Close")
         btn_close.clicked.connect(dialog.accept)
         dlg_layout.addWidget(btn_close)
-
         dialog.exec()
 
     def _show_feed_context_menu(self, feed_list: QListWidget, pos: QPoint):
@@ -148,20 +127,23 @@ class RSSReaderGUI(QMainWindow):
             self.fetch_and_show()
 
     def fetch_and_show(self):
-        # fetch & store
+        # 1) fetch each feed and store new entries with ISO timestamps
         for feed in get_feeds():
             parsed = feedparser.parse(feed["url"])
             for entry in parsed.entries:
                 entry_id = entry.get("id") or (entry.link + entry.get("published", ""))
+                # parse the RFC-822 pubDate into a datetime, then ISO
+                pub_raw = entry.get("published", "")
+                try:
+                    dt = parsedate_to_datetime(pub_raw)
+                    pub_iso = dt.isoformat()
+                except Exception:
+                    pub_iso = ""
                 add_entry(
-                    entry_id,
-                    feed["id"],
-                    entry.get("title", ""),
-                    entry.link,
-                    entry.get("published", ""),
+                    entry_id, feed["id"], entry.get("title", ""), entry.link, pub_iso
                 )
 
-        # display unread
+        # 2) load all unread entries (now sorted by ISO string in SQL)
         unread = get_unread_entries()
         self.list_widget.clear()
         for ent in unread:
