@@ -12,6 +12,7 @@ def get_conn():
 
 
 def init_db():
+    """Create tables; published is now an INTEGER (epoch seconds)."""
     with get_conn() as conn:
         conn.executescript(
             """
@@ -25,7 +26,7 @@ def init_db():
             feed_id    INTEGER NOT NULL REFERENCES feeds(id),
             title      TEXT,
             link       TEXT,
-            published  TEXT,          -- now ISO format!
+            published  INTEGER,         -- epoch seconds
             read       INTEGER DEFAULT 0
         );
         """
@@ -61,6 +62,7 @@ def get_feeds():
 
 
 def add_entry(entry_id, feed_id, title, link, published):
+    """published should now be an integer (epoch seconds)."""
     with get_conn() as conn:
         conn.execute(
             """INSERT OR IGNORE INTO entries
@@ -79,7 +81,7 @@ def get_unread_entries():
               FROM entries e
               JOIN feeds f ON e.feed_id = f.id
              WHERE e.read = 0
-             ORDER BY e.published DESC
+             ORDER BY e.published DESC    -- numeric sort on epoch
         """
         ).fetchall()
     return [dict(r) for r in rows]
