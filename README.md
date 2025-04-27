@@ -1,6 +1,6 @@
 # RSS Reader
 
-A Python-based RSS feed reader application that allows you to subscribe to, retrieve, and read RSS feeds.
+A Python-based RSS feed reader application that allows you to subscribe to, retrieve, and read RSS feeds. This implementation follows the [RSS 2.0 Specification](https://www.rssboard.org/rss-specification).
 
 ## Features
 
@@ -8,6 +8,15 @@ A Python-based RSS feed reader application that allows you to subscribe to, retr
 - Fetch and parse RSS feed content
 - View feed entries in a clean interface
 - Save feeds for later reading
+- SQLite database storage for feed persistence
+
+## Technical Details
+
+This application implements the RSS 2.0 specification, which includes support for:
+- Channel elements (title, link, description, etc.)
+- Item elements (title, link, description, author, etc.)
+- Proper XML parsing and rendering
+- SQLite database for storing feed data
 
 ## Installation
 
@@ -96,9 +105,13 @@ uv run main.py
 uv run main.py
 ```
 
+## Documentation
+
+RSS 2.0 specification documentation is included in the `docs` folder. The implementation follows this standard for maximum compatibility with modern RSS feeds.
+
 ## Configuration
 
-The application stores feed configurations in a JSON file. You can edit this manually or through the application interface.
+The application stores feed configurations in an SQLite database. You can manage feeds through the application interface.
 
 ## Contributing
 

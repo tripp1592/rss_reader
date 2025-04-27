@@ -5,6 +5,7 @@ import sys
 import webbrowser
 import feedparser
 from email.utils import parsedate_to_datetime
+from datetime import datetime
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -44,7 +45,6 @@ class RSSReaderGUI(QMainWindow):
     def init_ui(self):
         self.setWindowTitle("My PyQt6 RSS Reader")
         self.resize(800, 600)
-
         container = QWidget()
         self.setCentralWidget(container)
         layout = QVBoxLayout(container)
@@ -82,40 +82,36 @@ class RSSReaderGUI(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle("Manage Feeds")
         dlg_layout = QVBoxLayout(dialog)
-
         feed_list = QListWidget()
         for f in sorted(get_feeds(), key=lambda x: x["id"], reverse=True):
             feed_list.addItem(f["url"])
-
         feed_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         feed_list.customContextMenuRequested.connect(
             lambda pos: self._show_feed_context_menu(feed_list, pos)
         )
-
         dlg_layout.addWidget(feed_list)
         btn_close = QPushButton("Close")
         btn_close.clicked.connect(dialog.accept)
         dlg_layout.addWidget(btn_close)
         dialog.exec()
 
-    def _show_feed_context_menu(self, feed_list: QListWidget, pos: QPoint):
+    def _show_feed_context_menu(self, feed_list, pos):
         item = feed_list.itemAt(pos)
         if not item:
             return
-
         menu = QMenu(feed_list)
-        remove_action = menu.addAction("Remove Feed")
-        chosen = menu.exec(feed_list.mapToGlobal(pos))
-
-        if chosen == remove_action:
+        remove = menu.addAction("Remove Feed")
+        if menu.exec(feed_list.mapToGlobal(pos)) == remove:
             url = item.text()
-            confirm = QMessageBox.question(
-                self,
-                "Confirm Remove",
-                f"Remove feed:\n{url} ?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if confirm == QMessageBox.StandardButton.Yes:
+            if (
+                QMessageBox.question(
+                    self,
+                    "Confirm Remove",
+                    f"Remove feed:\n{url} ?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                )
+                == QMessageBox.StandardButton.Yes
+            ):
                 remove_feed(url)
                 feed_list.takeItem(feed_list.row(item))
                 self.fetch_and_show()
@@ -127,44 +123,50 @@ class RSSReaderGUI(QMainWindow):
             self.fetch_and_show()
 
     def fetch_and_show(self):
-        # 1) fetch each feed and store new entries with ISO timestamps
+        # 1) fetch & store with ISO dates
         for feed in get_feeds():
             parsed = feedparser.parse(feed["url"])
             for entry in parsed.entries:
-                entry_id = entry.get("id") or (entry.link + entry.get("published", ""))
-                # parse the RFC-822 pubDate into a datetime, then ISO
+                eid = entry.get("id") or (entry.link + entry.get("published", ""))
                 pub_raw = entry.get("published", "")
                 try:
                     dt = parsedate_to_datetime(pub_raw)
                     pub_iso = dt.isoformat()
                 except Exception:
                     pub_iso = ""
-                add_entry(
-                    entry_id, feed["id"], entry.get("title", ""), entry.link, pub_iso
-                )
+                add_entry(eid, feed["id"], entry.get("title", ""), entry.link, pub_iso)
 
-        # 2) load all unread entries (now sorted by ISO string in SQL)
-        unread = get_unread_entries()
+        # 2) retrieve unread
+        unread = (
+            get_unread_entries()
+        )  # :contentReference[oaicite:4]{index=4}&#8203;:contentReference[oaicite:5]{index=5}
+
+        # 3) Python-side sort by ISO timestamp
+        def parse_iso(s):
+            try:
+                return datetime.fromisoformat(s)
+            except:
+                return datetime.min
+
+        unread.sort(key=lambda e: parse_iso(e["published"]), reverse=True)
+
+        # 4) populate list
         self.list_widget.clear()
         for ent in unread:
             raw = ent.get("title", "")
-            display_title = " ".join(raw.split()) or ent.get("link", "")
-            item = QListWidgetItem(display_title)
+            disp = " ".join(raw.split()) or ent.get("link", "")
+            item = QListWidgetItem(disp)
             item.setData(Qt.ItemDataRole.UserRole, ent)
             self.list_widget.addItem(item)
-
         if not unread:
             self.text_browser.setHtml("<p><i>No new items.</i></p>")
 
-    def display_entry(self, item: QListWidgetItem):
+    def display_entry(self, item):
         ent = item.data(Qt.ItemDataRole.UserRole)
-        title = ent.get("title", "<i>(no title)</i>")
-        link = ent.get("link", "")
-        pub = ent.get("published", "")
         html = (
-            f"<h2>{title}</h2>"
-            f"<p><a href='{link}'>{link}</a></p>"
-            f"<p><i>Published: {pub}</i></p>"
+            f"<h2>{ent.get('title','<i>(no title)</i>')}</h2>"
+            f"<p><a href='{ent.get('link','')}'>{ent.get('link','')}</a></p>"
+            f"<p><i>Published: {ent.get('published','')}</i></p>"
         )
         self.text_browser.setHtml(html)
         mark_entry_read(ent["id"])
@@ -172,6 +174,6 @@ class RSSReaderGUI(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = RSSReaderGUI()
-    window.show()
+    win = RSSReaderGUI()
+    win.show()
     sys.exit(app.exec())
