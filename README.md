@@ -1,101 +1,114 @@
-# My PyQt6 RSS Reader
+# RSS Reader
 
-A simple desktop RSS reader built with PyQt6 and SQLite.  
-Fetches feeds, stores entries with ISO-8601 timestamps, and lets you add/remove/manage subscriptions at runtime.
-
+A Python-based RSS feed reader application that allows you to subscribe to, retrieve, and read RSS feeds.
 
 ## Features
 
-- **Add Feed**  
-  Subscribe to any RSS/Atom URL via the GUI.
-
-- **Manage Feeds**  
-  Click **Manage Feeds**, right-click any feed URL to remove it (with confirmation).
-
-- **Automatic Fetch & Store**  
-  On **Refresh**, downloads all items, stores new ones in an SQLite database, and marks read/unread.
-
-- **ISO-8601 Timestamps & Sorting**  
-  Entry `pubDate` strings are parsed into ISO-8601 format before storage.  
-  Entries are listed newest→oldest automatically.
-
-- **Read/Unread Tracking**  
-  Clicking an item marks it as read and removes it from the unread list.
-
-- **Detail View**  
-  Three-pane interface:  
-  - **Left**: List of unread titles (word-wrapped)  
-  - **Right**: Detail pane with full title, link, and published date.
-
----
+- Subscribe to multiple RSS feeds
+- Fetch and parse RSS feed content
+- View feed entries in a clean interface
+- Save feeds for later reading
 
 ## Installation
 
-1. **Clone this repo**  
-   ```bash
-   git clone https://github.com/yourusername/rss-reader-pyqt6.git
-   cd rss-reader-pyqt6
-   ```
+This project uses the UV package manager for Python.
 
-2. **Create & activate a virtualenv**  
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate   # Linux/macOS
-   venv\Scripts\activate      # Windows
-   ```
+### Prerequisites
 
-3. **Install dependencies**  
-   ```bash
-   pip install PyQt6 feedparser
-   ```
+- Python 3.8+
+- UV package manager
 
----
+### Installing UV
+
+#### Powershell (Windows)
+```powershell
+curl -sSf https://install.python-uv.org/v0.1.25 | python -
+```
+
+#### Bash (Linux/macOS)
+```bash
+curl -sSf https://install.python-uv.org/v0.1.25 | python3 -
+```
+
+#### Zsh (macOS)
+```zsh
+curl -sSf https://install.python-uv.org/v0.1.25 | python3 -
+```
+
+### Setting up the project
+
+1. Clone the repository:
+
+#### Powershell
+```powershell
+git clone https://github.com/yourusername/rss_reader.git
+cd rss_reader
+```
+
+#### Bash/Zsh
+```bash
+git clone https://github.com/yourusername/rss_reader.git
+cd rss_reader
+```
+
+2. Create a virtual environment:
+
+#### Powershell
+```powershell
+uv venv
+```
+
+#### Bash/Zsh
+```bash
+uv venv
+```
+
+3. Activate the virtual environment:
+
+#### Powershell
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+#### Bash/Zsh
+```bash
+source .venv/bin/activate
+```
+
+4. Install dependencies:
+
+#### All Platforms
+```
+uv pip install -r requirements.txt
+```
 
 ## Usage
 
-1. **Initialize the database**  
-   On first run, the app will create `rss_reader.db` with the required tables.
+Run the application:
 
-2. **Run the app**  
-   ```bash
-   python main.py
-   ```
-
-3. **Subscribe to feeds**  
-   - Click **Add Feed**, paste a feed URL, and hit **OK**.
-   - Or click **Manage Feeds** → right-click an existing URL for removal.
-
-4. **Fetch & view items**  
-   - Click **Refresh** to pull the latest entries.  
-   - Unread items appear in the left list; click one to see details (and mark it as read).
-
----
-
-## Project Structure
-
-```
-.
-├── main.py       # PyQt6 GUI & application logic
-├── db.py         # SQLite helpers: init, add/remove feeds, add entries, queries
-├── rss_reader.db # (generated) SQLite database file
-└── README.md     # This file
+#### Powershell
+```powershell
+uv run main.py
 ```
 
----
+#### Bash/Zsh
+```bash
+uv run main.py
+```
 
-## Notes & Tips
+## Configuration
 
-- **Database file**  
-  `rss_reader.db` lives in the same directory as `main.py`. Back it up or copy it to migrate your subscriptions and history.
+The application stores feed configurations in a JSON file. You can edit this manually or through the application interface.
 
-- **Date parsing**  
-  Uses Python’s `email.utils.parsedate_to_datetime` to convert feed `pubDate` into ISO strings for reliable SQL sorting.
+## Contributing
 
-- **Word-wrap**  
-  Long titles wrap in the list view—no horizontal scrolling needed.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- **Extending**  
-  - Add support for folders/tags by extending the `feeds` table.  
-  - Integrate desktop notifications (`win10toast`) for high-priority feeds.  
-  - Implement search/filter in the GUI.
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 

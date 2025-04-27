@@ -16,3 +16,5 @@
 - put summaries of changes into a file in root project folder in changes.log
   - please insert date in iso format and append a time for each change
   - update README.md when appropriate
+## Documentation
+- make README.md give cross platform instructions, for example, with installation, use bash, zsh, and powershell for instructions in the README.md
