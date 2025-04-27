@@ -129,7 +129,7 @@ class RSSReaderGUI(QMainWindow):
             self.fetch_and_show()
 
     def fetch_and_show(self):
-        # 1) Fetch & store with epoch
+        # 1) Fetch & store entries (as epoch ints)
         for feed in get_feeds():
             parsed = feedparser.parse(feed["url"])
             for entry in parsed.entries:
@@ -137,7 +137,6 @@ class RSSReaderGUI(QMainWindow):
                 pub_raw = entry.get("published", "")
                 try:
                     dt = parsedate_to_datetime(pub_raw)
-                    # normalize to UTC
                     if dt.tzinfo is None:
                         dt = dt.replace(tzinfo=timezone.utc)
                     epoch = int(dt.timestamp())
@@ -145,7 +144,7 @@ class RSSReaderGUI(QMainWindow):
                     epoch = 0
                 add_entry(eid, feed["id"], entry.get("title", ""), entry.link, epoch)
 
-        # 2) Load & display unread (SQL now sorts by published DESC)
+        # 2) Load & display unread (sorted by published DESC in DB)
         unread = get_unread_entries()
         self.list_widget.clear()
         for ent in unread:
@@ -164,7 +163,8 @@ class RSSReaderGUI(QMainWindow):
         pub_epoch = ent.get("published", 0) or 0
         try:
             dt = datetime.fromtimestamp(pub_epoch, tz=timezone.utc)
-            pub_str = dt.strftime("%a, %d %b %Y %H:%M:%S %z")
+            # New, more friendly format:
+            pub_str = dt.strftime("%B %d, %Y at %I:%M %p UTC")
         except Exception:
             pub_str = ""
         html = (
