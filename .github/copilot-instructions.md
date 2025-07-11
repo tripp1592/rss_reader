@@ -7,8 +7,7 @@
 - Use **snake_case** for function names, variables, and module names
 - Use **PascalCase** for class names
 - Use **UPPER_SNAKE_CASE** for constants
-- Implement **proper error handling** with try/except blocks and custom exceptions
-- Always include **type hints** for function parameters and return values
+- Implement **proper error handling** with try/except blocks
 - Use **docstrings** for all modules, classes, and functions
 - Follow **SOLID principles** for object-oriented design
 
@@ -100,7 +99,7 @@ def read_config_file(config_path: Path) -> Dict[str, Any]:
 - Document public API and main classes/functions
 
 ### Function/Class Documentation
-- Use Google-style or Sphinx-style docstrings consistently
+- Use Sphinx-style docstrings consistently
 - Document all parameters, return values, and exceptions
 - Include usage examples for complex functions
 - Add type hints for all parameters and return values
@@ -236,7 +235,7 @@ class TestDataProcessor:
 
 ### Efficient Python
 - Use **list comprehensions** and **generator expressions** for data processing
-- Prefer **pandas** for large dataset operations
+- Prefer **polars** for large dataset operations
 - Use **asyncio** for I/O-bound operations
 - Implement **caching** for expensive computations
 - Use **type hints** to enable optimization tools
@@ -320,7 +319,7 @@ config = load_api_config()
 
 ### Directory Structure Guidelines
 - **`core/`** - Essential business logic modules that are imported and used by `main.py` on every execution
-- **`utilities/`** - Standalone scripts that can be run individually for specific tasks (chart generation, portfolio updates, etc.)
+- **`utils/`** - Standalone scripts that can be run individually for specific tasks (chart generation, portfolio updates, etc.)
 - **`api/`** - External API clients and communication modules
 - **`config/`** - Configuration management and settings
 - **`logging/`** - Logging utilities and configuration
@@ -335,7 +334,7 @@ project_name/
 │   │   ├── __init__.py
 │   │   ├── data_processor.py
 │   │   └── yield_calculator.py
-│   ├── utilities/
+│   ├── utils/
 │   │   ├── __init__.py
 │   │   ├── chart_generator.py
 │   │   ├── portfolio_updater.py
@@ -348,7 +347,7 @@ project_name/
 │   │   └── settings.py
 │   └── logging/
 │       ├── __init__.py
-│       └── utils.py
+│       └── app.log
 ├── tests/
 │   ├── __init__.py
 │   ├── test_data_processor.py
@@ -372,7 +371,7 @@ project_name/
 ### Dependency Management
 ```bash
 # Create virtual environment with uv
-uv venv .venv
+uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies using uv
@@ -405,9 +404,8 @@ mypy>=1.0.0
 ### UV Package Manager
 - Use **uv** as the primary package and dependency manager
 - Prefer `uv run` commands over direct Python execution
-- Use `uv pip` for package installation and management
+- Use `uv add` for package installation and management
 - Create virtual environments using `uv venv`
-- Lock dependencies with `uv pip freeze` for reproducible builds
 
 ### UV Command Patterns
 ```bash
@@ -417,8 +415,8 @@ uv run -m pytest                  # Instead of: python -m pytest
 uv run src/module_name.py         # Instead of: python src/module_name.py
 
 # Package management
-uv pip install package_name       # Install packages
-uv pip install -r requirements.txt # Install from requirements
+uv add package_name       # Install packages
+uv add -r requirements.txt # Install from requirements
 uv pip freeze > requirements.txt  # Lock current dependencies
 uv pip list                       # List installed packages
 
@@ -430,14 +428,14 @@ uv venv --python 3.11             # Create with specific Python version
 ### Project Setup with UV
 ```bash
 # Initialize new project
-uv venv .venv
+uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install project dependencies
-uv pip install -r requirements.txt
+uv add -r requirements.txt
 
 # Install development dependencies
-uv pip install -r requirements-dev.txt
+uv add -r requirements-dev.txt
 
 # Run the main application
 uv run main.py
@@ -454,7 +452,7 @@ uv run -m black src/ tests/
 
 ### UV Best Practices
 - Always use `uv run` for script execution to ensure proper environment activation
-- Use `uv pip` for all package operations to maintain consistency
+- Use `uv add` for all package operations to maintain consistency
 - Create separate requirements files for different environments
 - Use `uv pip freeze` to create reproducible dependency locks
 - Document UV usage in project README files
@@ -510,7 +508,7 @@ def calculate_precise_yield(dividend: str, cost_basis: str) -> Decimal:
 
 ### Settings and Configuration
 - Use **JSON** or **TOML** for configuration files
-- Implement configuration validation with **pydantic** or **dataclasses**
+- Implement configuration validation with **dataclasses**
 - Support environment-specific configurations
 - Provide sensible defaults for all configuration options
 - Document all configuration parameters
@@ -628,8 +626,6 @@ logger.error("Error processing file: %s", filename)
 - Use meaningful commit messages following conventional commits
 - Include comprehensive .gitignore for Python projects
 - Tag releases with semantic versioning
-- Document breaking changes in CHANGELOG.md
-- Use pre-commit hooks for code quality
 
 ### Recommended .gitignore
 ```
@@ -665,8 +661,6 @@ env.bak/
 venv.bak/
 
 # IDE
-.vscode/
-.idea/
 *.swp
 *.swo
 
@@ -702,11 +696,11 @@ git clone https://github.com/username/project-name.git
 cd project-name
 
 # Create virtual environment with uv
-uv venv .venv
+uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-uv pip install -r requirements.txt
+uv add -r requirements.txt
 ```
 
 ## Usage
@@ -740,7 +734,6 @@ Create a `settings.json` file or set environment variables:
 
 Environment variables:
 - `API_KEY` - Your API key for external services
-- `LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)
 
 ## Examples
 
@@ -790,7 +783,7 @@ flowchart TD
     H --> I[End]
 ```
 
-## API Reference
+
 
 ### DataProcessor
 
@@ -810,10 +803,8 @@ Any important notes, limitations, or known issues.
 ## Type Hints and Static Analysis
 
 ### Type Checking
-- Use **mypy** for static type checking
-- Add type hints to all function signatures
+- Use **ty** for static type checking
 - Use **typing** module for complex types
-- Configure mypy in pyproject.toml or mypy.ini
 
 ### Type Hint Examples
 ```python
@@ -853,19 +844,19 @@ Utility modules can be executed independently for specific tasks:
 
 ```bash
 # Generate charts for portfolio analysis
-uv run src/utilities/chart_generator.py --input data/portfolio.csv
+uv run src/utils/chart_generator.py --input data/portfolio.csv
 
 # Update portfolio with current prices
-uv run src/utilities/portfolio_updater.py --portfolio data/portfolio.csv
+uv run src/utils/portfolio_updater.py --portfolio data/portfolio.csv
 
 # Process CSV files independently
-uv run src/utilities/csv_processor.py --file data/input.csv --output data/processed.csv
+uv run src/utils/csv_processor.py --file data/input.csv --output data/processed.csv
 ```
 
 Make utility scripts executable by adding a `if __name__ == "__main__":` block:
 
 ```python
-# src/utilities/chart_generator.py
+# src/utils/chart_generator.py
 def generate_charts(portfolio_path: Path) -> None:
     """Generate charts for portfolio analysis."""
     # Chart generation logic here

@@ -63,3 +63,64 @@ def get_entry_title(entry) -> str:
     """Extract a title from a feed entry safely."""
     title = getattr(entry, "title", "Untitled")
     return str(title)
+
+
+def get_entry_audio_url(entry) -> str | None:
+    """Extract audio URL from a feed entry (for podcasts)."""
+    if hasattr(entry, "links") and entry.links:
+        # Look for audio links (common audio MIME types)
+        audio_types = [
+            "audio/mpeg",
+            "audio/mp3",
+            "audio/x-mp3",
+            "audio/mp4",
+            "audio/m4a",
+            "audio/x-m4a",
+            "audio/wav",
+            "audio/ogg",
+            "audio/webm",
+        ]
+
+        for link_obj in entry.links:
+            if hasattr(link_obj, "type") and link_obj.type in audio_types:
+                return getattr(link_obj, "href", None)
+
+            # Also check for .mp3, .m4a, .wav file extensions
+            if hasattr(link_obj, "href"):
+                href = link_obj.href.lower()
+                if any(
+                    href.endswith(ext)
+                    for ext in [".mp3", ".m4a", ".wav", ".ogg"]
+                ):
+                    return link_obj.href
+
+    # Fallback: check enclosures (common in podcast feeds)
+    if hasattr(entry, "enclosures") and entry.enclosures:
+        for enclosure in entry.enclosures:
+            if hasattr(enclosure, "type") and "audio" in enclosure.type:
+                return getattr(enclosure, "href", None)
+
+    return None
+
+
+def get_entry_duration(entry) -> str | None:
+    """Extract duration from a feed entry if available."""
+    # Check for iTunes duration
+    duration = getattr(entry, "itunes_duration", None)
+    if duration:
+        return str(duration)
+
+    # Check in enclosures
+    if hasattr(entry, "enclosures") and entry.enclosures:
+        for enclosure in entry.enclosures:
+            if hasattr(enclosure, "length"):
+                # Convert bytes to approximate duration (rough estimate)
+                try:
+                    length_bytes = int(enclosure.length)
+                    # Rough estimate: 1MB ≈ 1 minute for audio
+                    minutes = length_bytes // (1024 * 1024)
+                    return f"~{minutes} min"
+                except (ValueError, AttributeError):
+                    pass
+
+    return None
