@@ -65,42 +65,60 @@ def get_entry_title(entry) -> str:
     return str(title)
 
 
-def get_entry_audio_url(entry) -> str | None:
-    """Extract audio URL from a feed entry (for podcasts)."""
-    if hasattr(entry, "links") and entry.links:
-        # Look for audio links (common audio MIME types)
-        audio_types = [
-            "audio/mpeg",
-            "audio/mp3",
-            "audio/x-mp3",
-            "audio/mp4",
-            "audio/m4a",
-            "audio/x-m4a",
-            "audio/wav",
-            "audio/ogg",
-            "audio/webm",
-        ]
+def _get_audio_url_from_links(entry) -> str | None:
+    """Extract audio URL from entry links."""
+    if not (hasattr(entry, "links") and entry.links):
+        return None
 
-        for link_obj in entry.links:
-            if hasattr(link_obj, "type") and link_obj.type in audio_types:
-                return getattr(link_obj, "href", None)
+    audio_types = [
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/x-mp3",
+        "audio/mp4",
+        "audio/m4a",
+        "audio/x-m4a",
+        "audio/wav",
+        "audio/ogg",
+        "audio/webm",
+    ]
 
-            # Also check for .mp3, .m4a, .wav file extensions
-            if hasattr(link_obj, "href"):
-                href = link_obj.href.lower()
-                if any(
-                    href.endswith(ext)
-                    for ext in [".mp3", ".m4a", ".wav", ".ogg"]
-                ):
-                    return link_obj.href
+    for link_obj in entry.links:
+        # Check MIME type first
+        if hasattr(link_obj, "type") and link_obj.type in audio_types:
+            return getattr(link_obj, "href", None)
 
-    # Fallback: check enclosures (common in podcast feeds)
-    if hasattr(entry, "enclosures") and entry.enclosures:
-        for enclosure in entry.enclosures:
-            if hasattr(enclosure, "type") and "audio" in enclosure.type:
-                return getattr(enclosure, "href", None)
+        # Check file extension
+        if hasattr(link_obj, "href"):
+            href = link_obj.href.lower()
+            if any(
+                href.endswith(ext) for ext in [".mp3", ".m4a", ".wav", ".ogg"]
+            ):
+                return link_obj.href
 
     return None
+
+
+def _get_audio_url_from_enclosures(entry) -> str | None:
+    """Extract audio URL from entry enclosures."""
+    if not (hasattr(entry, "enclosures") and entry.enclosures):
+        return None
+
+    for enclosure in entry.enclosures:
+        if hasattr(enclosure, "type") and "audio" in enclosure.type:
+            return getattr(enclosure, "href", None)
+
+    return None
+
+
+def get_entry_audio_url(entry) -> str | None:
+    """Extract audio URL from a feed entry (for podcasts)."""
+    # Try links first
+    audio_url = _get_audio_url_from_links(entry)
+    if audio_url:
+        return audio_url
+
+    # Fallback to enclosures
+    return _get_audio_url_from_enclosures(entry)
 
 
 def get_entry_duration(entry) -> str | None:

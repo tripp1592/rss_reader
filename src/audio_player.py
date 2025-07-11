@@ -6,8 +6,6 @@ This module handles audio playback for podcast episodes.
 
 import os
 import tempfile
-import threading
-import time
 from typing import Callable, Optional
 
 import requests
